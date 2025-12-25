@@ -10,6 +10,9 @@ class SeverityLevel extends Model
 
     protected $fillable = ['name'];
 
+    public const ALLOWED = ['low', 'medium', 'high', 'critical'];
+
+
     public function slaRule()
     {
         return $this->hasOne(SlaRule::class, 'severity_id');
