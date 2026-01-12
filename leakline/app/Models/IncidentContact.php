@@ -14,7 +14,9 @@ class IncidentContact extends Model
         'preferred_locale',
         'consent_version',
         'consented_at',
-        'gdpr_token'
+        'gdpr_token',
+        'latitude',
+        'longitude',
     ];
 
     public function incident()

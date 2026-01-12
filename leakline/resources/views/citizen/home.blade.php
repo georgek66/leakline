@@ -17,6 +17,10 @@
 <main>
     <h2>Report a water leak</h2>
     <p>Citizen PWA will live here.</p>
+    <a href="{{ route('citizen.report.create') }}">
+        Open report page
+    </a>
+
 </main>
 
 </body>

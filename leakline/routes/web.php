@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Citizen\IncidentReportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -26,5 +27,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
+//Citizen workflow routes
+Route::get('/citizen/report', [IncidentReportController::class, 'create'])
+        ->name('citizen.report.create');
+
+Route::post('/citizen/report', [IncidentReportController::class, 'store'])
+    ->name('citizen.report.store');
+Route::get('/citizen/track', function () {
+    return 'Track page coming soon';
+})->name('citizen.track.form');
 
 require __DIR__.'/auth.php';

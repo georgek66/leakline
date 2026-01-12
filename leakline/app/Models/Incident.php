@@ -13,7 +13,9 @@ class Incident extends Model
         'area_id',
         'location',
         'description',
-        'status'
+        'status',
+        'longitude',
+        'latitude',
     ];
 
     public function reporter()
