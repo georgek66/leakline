@@ -16,7 +16,9 @@ class Incident extends Model
         'status',
         'longitude',
         'latitude',
+        'ticket_id',
     ];
+
 
     public function reporter()
     {

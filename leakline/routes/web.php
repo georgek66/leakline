@@ -7,7 +7,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('citizen.home');
+    return view('citizen.homepage');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -28,13 +28,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 //Citizen workflow routes
-Route::get('/citizen/report', [IncidentReportController::class, 'create'])
-        ->name('citizen.report.create');
+Route::prefix('citizen')
+    ->middleware('setLocale')
+    ->group(function () {
 
-Route::post('/citizen/report', [IncidentReportController::class, 'store'])
-    ->name('citizen.report.store');
-Route::get('/citizen/track', function () {
-    return 'Track page coming soon';
-})->name('citizen.track.form');
+        // Citizen workflow routes
+        Route::get('/report', [IncidentReportController::class, 'create'])
+            ->name('citizen.report.create');
+
+        Route::post('/report', [IncidentReportController::class, 'store'])
+            ->name('citizen.report.store');
+
+        Route::get('/track', [IncidentReportController::class, 'trackForm'])
+            ->name('citizen.track.form');
+
+        Route::post('/track', [IncidentReportController::class, 'trackResult'])
+            ->name('citizen.track.search');
+
+        Route::get('/received/{ticket}', [IncidentReportController::class, 'received'])
+            ->name('citizen.report.received');
+
+        // Citizen locale (manual switch)
+        Route::get('/lang/{locale}', function (string $locale) {
+            if (! in_array($locale, ['en', 'el'])) {
+                abort(404);
+            }
+
+            // Persist choice for citizen pages
+            session(['locale' => $locale]);
+
+            return back();
+        })->name('citizen.lang');
+    });
+
+route::view("/offline",'offline')
+    ->name('offline');
 
 require __DIR__.'/auth.php';

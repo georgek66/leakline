@@ -24,7 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => RoleMiddleware::class,
+            'setLocale' =>\App\Http\Middleware\SetLocale::class,
         ]);
+        // Set application locale from session (i18n)
+        $middleware->appendToGroup('web', \App\Http\Middleware\SetLocale::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

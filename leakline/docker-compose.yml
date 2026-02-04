@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  pgsql:
+    image: postgis/postgis:16-3.4
+    container_name: leakline_pgsql
+    environment:
+      POSTGRES_DB: leakline
+      POSTGRES_USER: sail
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+
