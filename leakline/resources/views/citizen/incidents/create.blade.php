@@ -57,8 +57,8 @@
                         {{ __('citizen.use_my_location') }}
                     </button>
                 </div>
-                <!-- The map container. Increase the height a bit to give users more space -->
-                <div id="map" class="w-full rounded-xl overflow-hidden border" style="height: 500px;"></div>
+                <!-- The map container-->
+                <div id="map" class="w-full rounded-xl overflow-hidden border h-64 sm:h-80 lg:h-[500px]"></div>
 
                 <p class="text-xs text-gray-500 mt-3">
                     {{ __('citizen.map_tip') }}
@@ -324,8 +324,18 @@
             (pos) => {
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
+
+                // Move map
                 map.setView([lat, lng], 16);
+
+                // Drop marker
                 setPin(lat, lng);
+
+                // Store in hidden inputs
+                document.getElementById('latitude').value = lat;
+                document.getElementById('longitude').value = lng;
+
+                console.log("Stored coordinates:", lat,lng);
             },
             () => alert('Could not get your location. Please drop a pin on the map.'),
             { enableHighAccuracy: true, timeout: 8000 }

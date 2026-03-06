@@ -18,4 +18,5 @@ class SlaRule extends Model
     {
         return $this->belongsTo(SeverityLevel::class);
     }
+
 }

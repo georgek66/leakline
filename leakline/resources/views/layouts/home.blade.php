@@ -5,6 +5,11 @@
 <head>
 
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <meta name="theme-color" content="#3A9AFF">
+    <link rel="apple-touch-icon" href="/icons/180x180.png">
+
     <title>{{ config('app.name', 'LeakLine') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
@@ -13,12 +18,12 @@
 
 <!-- Navigation -->
 <header class="bg-white border-b shadow-sm">
-    <nav class="max-w-7xl mx-auto flex justify-between items-center py-4 px-6">
+    <nav class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 py-4 px-4 sm:px-6">
         <div class="text-xl font-bold">
             <a href="{{ url('/') }}">LeakLine</a>
         </div>
-        <div class="flex items-center gap-6 text-sm">
-            <a href="{{ route('citizen.report.create') }}" class="hover:underline">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+        <a href="{{ route('citizen.report.create') }}" class="hover:underline">
                 {{ __('nav.report') }}
             </a>
 
@@ -46,7 +51,7 @@
 </header>
 
 <!-- Page content will go here -->
-<main class="w-full">
+<main class="w-full flex-1">
     <div class="w-full">
         @yield('content')
     </div>
@@ -58,8 +63,8 @@
 <footer class="bg-gray-50 border-t py-4">
     <div class="max-w-7xl mx-auto text-center text-sm text-gray-600">
         <p>&copy; {{ date('Y') }} LeakLine. All rights reserved.</p>
-        <div class="mt-2 space-x-4">
-            <a href="{{ route('citizen.report.create') }}" class="hover:underline">
+        <div class="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-2">
+        <a href="{{ route('citizen.report.create') }}" class="hover:underline">
                 Report a Leak
             </a>
             <a href="{{ route('citizen.track.form') }}" class="hover:underline">

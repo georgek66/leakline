@@ -13,8 +13,8 @@ class DashboardController extends Controller
         return match ($role) {
             'admin'       => view('admin.dashboard'),
             'technician'  => view('technician.dashboard'),
-            'coordinator' => view('coordinator.dashboard'),
-            default       => view('citizen.home'),
+            'coordinator' => redirect()->route('coordinator.dashboard'),
+            default       => view('citizen.homepage'),
         };
     }
 

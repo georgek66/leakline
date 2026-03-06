@@ -145,11 +145,101 @@ class IncidentReportController extends Controller
             'ticket_id' => ['required', 'string', 'max:30'],
         ]);
 
-        $incident = Incident::where('ticket_id', $data['ticket_id'])->first();
+        $incident = Incident::with(['contact','category','severity'])
+            ->where('ticket_id', $data['ticket_id'])
+            ->first();
 
         return view('citizen.incidents.track', [
             'ticket_id' => $data['ticket_id'],
             'incident'  => $incident,
         ]);
+    }
+
+    // Delete contact info if requested
+    public function destroyByToken(string $token)
+    {
+        $contact = IncidentContact::where('gdpr_token', $token)->firstorFail();
+
+        // Make contact info null
+        $contact ->update([
+            'name'=>null,
+            'email'=>null,
+            'phone'=>null,
+        ]);
+
+        return back()->with('status','Your contact info was deleted.');
+    }
+
+    public function storeSync(Request $request)
+    {
+
+        $validator = \Validator::make($request->all(),[
+            'client_id'     => ['required', 'uuid'],
+            'contact_name'  => ['nullable', 'string', 'max:120'],
+            'contact_email' => ['nullable', 'email', 'max:191'],
+            'contact_phone' => ['nullable', 'string', 'max:40'],
+            'consent'       => ['nullable', 'boolean'],
+            'category_id'   => ['required', 'exists:categories,id'],
+            'severity_id'   => ['required', 'exists:severity_levels,id'],
+            'latitude'      => ['required', 'numeric', 'between:-90,90'],
+            'longitude'     => ['required', 'numeric', 'between:-180,180'],
+            'description'   => ['nullable', 'string', 'max:2000'],
+            'location'      => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        // Return only validated values
+        $validated = $validator->validated();
+
+        // firstOrCreate prevents duplicate if SW retries
+        $incident = Incident::firstOrCreate(
+            ['client_id' => $validated['client_id']],
+            [
+                'ticket_id'   => $this->generateTicketId(),
+                'reporter_id' => auth()->id(),
+                'category_id' => $validated['category_id'],
+                'severity_id' => $validated['severity_id'],
+                'description' => $validated['description'] ?? null,
+                'latitude'    => $validated['latitude'],
+                'longitude'   => $validated['longitude'],
+                'status'      => 'open',
+                'location' => $validated['location'] ?? $validated['latitude'] . ', ' . $validated['longitude'],
+            ]
+        );
+
+        // Only run geom update if this is a brand new incident
+        if ($incident->wasRecentlyCreated) {
+            DB::statement(
+                "UPDATE incidents SET location_geom = ST_SetSRID(ST_MakePoint(?, ?), 4326) WHERE id = ?",
+                [$validated['longitude'], $validated['latitude'], $incident->id]
+            );
+
+            // Save contact details if provided
+            $hasContact = !empty($validated['contact_name'] ?? null) ||
+                !empty($validated['contact_email'] ?? null) ||
+                !empty($validated['contact_phone'] ?? null);
+
+            if ($hasContact) {
+                IncidentContact::create([
+                    'incident_id'      => $incident->id,
+                    'name'             => $validated['contact_name'] ?? null,
+                    'email'            => $validated['contact_email'] ?? null,
+                    'phone'            => $validated['contact_phone'] ?? null,
+                    'preferred_locale' => app()->getLocale(),
+                    'consent_version'  => 'v1',
+                    'consented_at'     => !empty($validated['consent']) ? now() : null,
+                    'gdpr_token'       => (string) Str::uuid(),
+                ]);
+            }
+        }
+
+        // Always return JSON (SW can't handle redirects)
+        return response()->json([
+            'ticket_id' => $incident->ticket_id,
+            'created'   => $incident->wasRecentlyCreated,
+        ], 201);
     }
 }

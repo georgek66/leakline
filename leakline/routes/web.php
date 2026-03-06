@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Citizen\IncidentReportController;
+use App\Http\Controllers\Coordinator\CoordinatorDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -32,7 +33,7 @@ Route::prefix('citizen')
     ->middleware('setLocale')
     ->group(function () {
 
-        // Citizen workflow routes
+
         Route::get('/report', [IncidentReportController::class, 'create'])
             ->name('citizen.report.create');
 
@@ -41,7 +42,8 @@ Route::prefix('citizen')
 
         Route::get('/track', [IncidentReportController::class, 'trackForm'])
             ->name('citizen.track.form');
-
+        Route::delete('/contact/{token}', [IncidentReportController::class, 'destroyByToken'])
+            ->name('citizen.contact.delete');
         Route::post('/track', [IncidentReportController::class, 'trackResult'])
             ->name('citizen.track.search');
 
@@ -59,9 +61,37 @@ Route::prefix('citizen')
 
             return back();
         })->name('citizen.lang');
+
+
+
+    });
+// Offline sync route without middlewares
+Route::post('citizen/report/sync',[IncidentReportController::class, 'storeSync'])
+    ->name('citizen.report.sync')
+    ->withoutMiddleware(App\Http\Middleware\SetLocale::class);
+
+
+
+// Coordinator routes
+Route::middleware(['auth', 'role:coordinator,admin'])
+    ->prefix('coordinator')
+    ->name('coordinator.')
+    ->group(function () {
+        Route::get('/dashboard', [CoordinatorDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        Route::get('/incidents/{incident}/duplicates',[CoordinatorDashboardController::class, 'duplicates'])
+            ->name('incidents.duplicates');
+
+        Route::post('/incidents/{incident}/merge',[CoordinatorDashboardController::class, 'merge'])
+            ->name('incidents.merge');
+
+
     });
 
-route::view("/offline",'offline')
-    ->name('offline');
+// Offline page
+Route::view('/offline', 'offline')->name('offline');
 
+
+// routes for authentication
 require __DIR__.'/auth.php';

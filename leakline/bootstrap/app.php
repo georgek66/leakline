@@ -28,6 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         // Set application locale from session (i18n)
         $middleware->appendToGroup('web', \App\Http\Middleware\SetLocale::class);
+
+        // CSRF exception for offline sync
+        $middleware->validateCsrfTokens(except: [
+            'citizen/report/sync',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

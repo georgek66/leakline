@@ -1,0 +1,38 @@
+{
+    "id": "/",
+    "name": "LeakLine: Report a water leak ",
+    "short_name": "LeakLine",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#3A9AFF",
+    "theme_color": "#3A9AFF",
+    "orientation": "portrait-primary",
+    "description": "Report water leaks quickly and help improve city infrastructure.",
+    "icons": [
+        {
+               "src": "/icons/180x180.png",
+               "type": "image/png",
+               "sizes": "180x180",
+               "purpose": "any"
+        },
+        {
+               "src": "/icons/192x192.png",
+               "type": "image/png",
+               "sizes": "192x192",
+               "purpose": "any"
+        },
+        {
+                "src": "/icons/512x512.png",
+                "type": "image/png",
+                "sizes": "512x512",
+                "purpose": "any"
+        },
+        {
+                 "src": "/icons/512x512-maskable.png",
+                 "sizes": "512x512",
+                 "type": "image/png",
+                 "purpose": "maskable"
+        }
+    ]
+
+}

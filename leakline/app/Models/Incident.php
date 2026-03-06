@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Incident extends Model
 {
+
     protected $fillable = [
         'reporter_id',
         'category_id',
@@ -17,6 +18,7 @@ class Incident extends Model
         'longitude',
         'latitude',
         'ticket_id',
+        'client_id',
     ];
 
 
@@ -63,5 +65,35 @@ class Incident extends Model
     public function notifications()
     {
         return $this->hasMany(Notification::class);
+    }
+    public function slaRule()
+    {
+        return $this->belongsTo(SlaRule::class, 'severity_id', 'severity_id');
+    }
+
+    //SLA Rules functions for timers
+    public function responseDueAt(){
+        $rule = $this->slaRule;
+        if (!$rule || !$this->created_at){
+            return null;
+        }
+        return $this->created_at->copy()->addHours($rule->response_time);
+    }
+
+    public function resolutionDueAt(){
+        $rule =$this->slaRule;
+        //If there is no rule or created at, return null
+        if(!$rule || !$this->created_at){
+            return null;
+        }
+        return $this->created_at->copy()->addHours($rule->resolution_time);
+    }
+
+    public function slaMinutesLeft(){
+        $due = $this->responseDueAt();
+        if (!$due){
+            return null;
+        }
+        return (int)now()->diffInMinutes($due,false);
     }
 }
