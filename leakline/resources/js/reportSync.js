@@ -22,9 +22,34 @@ function openDB() {
     });
 }
 
+// Convert files to base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+    });
+}
 // Save a report to IndexedDB
 export async function saveReportOffline(formEl) {
     const data = new FormData(formEl);
+    const mediaBase64 = [];
+    // limit submission to 5
+    const files = data.getAll('media[]');
+    if (files.length > 5){
+        throw new Error('Too many files!');
+    }
+    for (const file of files) {
+        if (file.size > 20971520  ) {
+            throw new Error('Each file must be smaller than 20MB');
+        }
+        // convert files to base64
+        const base64 = await fileToBase64(file);
+        mediaBase64.push(base64);
+    }
+
+
 
     // Build a plain object (FormData can't be stored in IndexedDB)
     const report = {
@@ -40,6 +65,7 @@ export async function saveReportOffline(formEl) {
         contact_phone: data.get('contact_phone'),
         consent:       data.get('consent') ? 1 : 0,
         saved_at:      new Date().toISOString(),
+        media64:       mediaBase64,
     };
     // Validate consent
     const hasContact = report.contact_name || report.contact_email || report.contact_phone;
@@ -62,7 +88,7 @@ export async function saveReportOffline(formEl) {
         await sw.sync.register('sync-reports');
     }
 
-    return report.client_id; // return so we can show the user something
+
 }
 const reportForm = document.getElementById('leakline_report');
 

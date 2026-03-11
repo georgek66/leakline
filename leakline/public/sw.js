@@ -125,12 +125,10 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-    // MDN-style: fetch fires for requests from controlled pages
-    // console.log("[SW] fetch", event.request.method, event.request.mode, event.request.url);
-
+    // Handle Get Requests only
     if (event.request.method !== "GET") return;
 
-
+    // Get the request URL
     const url = new URL(event.request.url);
 
     // Cache-first for Vite build assets

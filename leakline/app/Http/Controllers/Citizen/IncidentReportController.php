@@ -11,7 +11,7 @@ use App\Models\Category;
 use App\Models\SeverityLevel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Storage;
 class IncidentReportController extends Controller
 {
     private function generateTicketId(): string
@@ -185,6 +185,8 @@ class IncidentReportController extends Controller
             'longitude'     => ['required', 'numeric', 'between:-180,180'],
             'description'   => ['nullable', 'string', 'max:2000'],
             'location'      => ['nullable', 'string', 'max:255'],
+            'media64'       => ['nullable', 'array', 'max:5'],
+            'media64.*'     => ['nullable', 'string'],
         ]);
 
         if ($validator->fails()) {
@@ -233,6 +235,30 @@ class IncidentReportController extends Controller
                     'consented_at'     => !empty($validated['consent']) ? now() : null,
                     'gdpr_token'       => (string) Str::uuid(),
                 ]);
+            }
+            if (!empty($validated['media64'])) {
+                foreach ($validated['media64'] as $base64) {
+                    \Log::info('base64 prefix', ['prefix' => substr($base64, 0, 80)]);
+                    //  extract mime type
+                    $mime = explode(';', explode(':', $base64)[1])[0];
+                    //  detect image or video
+                    $type = str_starts_with($mime, 'video/') ? 'video' : 'image';
+                    $ext = explode('/', $mime)[1]; // extension
+                    //  generate filename with correct extension
+                    $filename = Str::uuid(). '.' . $ext;
+                    //  decode base64
+                    $pureBase64 = explode(',', $base64)[1];
+                    $fileData   = base64_decode($pureBase64);
+                    //  save to storage
+                    $path = 'incident_media/' . $filename;
+                    Storage::disk('public')->put($path, $fileData);
+                    //  create IncidentMedia record
+                    IncidentMedia::create([
+                        'incident_id' => $incident->id,
+                        'file_url'    => $path,
+                        'media_type'  => $type,
+                    ]);
+                }
             }
         }
 
