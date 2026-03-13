@@ -26,7 +26,7 @@
             </div>
 
             <div class="mt-6 flex gap-3">
-                <a href="{{ route('citizen.track.form') }}"
+                <a href="{{ route('citizen.track.form', ['ticket_id' => $incident->ticket_id]) }}"
                    class="px-4 py-2 rounded-lg border">
                     {{ __('citizen.track_report') }}
                 </a>

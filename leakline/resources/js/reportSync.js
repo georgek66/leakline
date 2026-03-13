@@ -72,6 +72,10 @@ export async function saveReportOffline(formEl) {
     if (hasContact && !report.consent) {
         throw new Error('Please accept consent if you provide contact details.');
     }
+    // Validate pin/mark
+    if (!report.latitude || !report.longitude) {
+        throw new Error('Please place a pin on the map before submitting.');
+    }
 
     // Save to IndexedDB
     const db = await openDB();

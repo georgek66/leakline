@@ -1,5 +1,5 @@
 // public/sw.js
-const CACHE_NAME = "leakline-v4";
+const CACHE_NAME = "leakline-v5";
 
 // Pages to precache (must be reachable without auth redirects)
 const PRECACHE_URLS = [
@@ -201,7 +201,7 @@ async function syncPendingReports() {
                         body: `Your report was submitted successfully! Ticket ID: ${ticketId}`,
                         tag: ticketId, // prevent duplicate notifications
                         data: {
-                            url: `/citizen/received/${ticketId}` // clickable
+                            url: `/citizen/track?ticket_id=${ticketId}` // clickable
                         }
                     });
                 } catch (err) {

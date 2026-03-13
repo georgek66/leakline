@@ -14,6 +14,9 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 class IncidentReportController extends Controller
 {
+    /**
+     * Generate a unique ticket ID for incident tracking.
+     */
     private function generateTicketId(): string
     {
         do {
@@ -39,7 +42,7 @@ class IncidentReportController extends Controller
 
     public function store(Request $request)
     {
-        //Validate input
+        // Validate citizen input, coordinates, and optional media attachments.
         $validated = $request->validate(
             [
                 'contact_name'  => ['nullable', 'string', 'max:120'],
@@ -59,6 +62,7 @@ class IncidentReportController extends Controller
 
             ],
             [
+                // Intentionally blank to avoid duplicate/default validation text in UI.
                 'location.required' => '',
                 'latitude.required'  => 'Please click the map to place a pin before submitting.',
                 'longitude.required' => '',
@@ -67,7 +71,7 @@ class IncidentReportController extends Controller
             ]
         );
 
-        //Save the incident
+        // Create primary incident record.
         $incident = Incident::create([
             'ticket_id'   => $this->generateTicketId(),
             'reporter_id' => auth()->id(), //if logged in
@@ -81,18 +85,20 @@ class IncidentReportController extends Controller
 
         ]);
 
+        // Keep PostGIS geometry column in sync with submitted lat/lng.
         DB::statement(
             "UPDATE incidents
             SET location_geom = ST_SetSRID(ST_MakePoint(?, ?), 4326)
             WHERE id = ?",
             [
-                $validated['longitude'], // X
-                $validated['latitude'],  // Y
+                $validated['longitude'], // X (longitude)
+                $validated['latitude'],  // Y (latitude)
                 $incident->id
             ]
         );
 
 
+        // Store contact row only when contact data exists (or consent was explicitly sent).
         $hasAnyContact =
             !empty($validated['contact_name'] ?? null) ||
             !empty($validated['contact_email'] ?? null) ||
@@ -135,9 +141,11 @@ class IncidentReportController extends Controller
         return redirect()->route('citizen.report.received', $incident->ticket_id);
 
     }
-    public function trackForm()
+    public function trackForm(Request $request)
     {
-        return view('citizen.incidents.track');
+        return view('citizen.incidents.track',[
+            'ticket_id' => $request->query('ticket_id'),
+        ]);
     }
     public function trackResult(Request $request)
     {
@@ -219,7 +227,7 @@ class IncidentReportController extends Controller
                 [$validated['longitude'], $validated['latitude'], $incident->id]
             );
 
-            // Save contact details if provided
+            // Save contact details only when at least one field is provided.
             $hasContact = !empty($validated['contact_name'] ?? null) ||
                 !empty($validated['contact_email'] ?? null) ||
                 !empty($validated['contact_phone'] ?? null);

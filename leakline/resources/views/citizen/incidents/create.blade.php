@@ -151,7 +151,7 @@
                     >
                         @foreach ($severities as $sev)
                             <option value="{{ $sev->id }}" @selected(old('severity_id') == $sev->id)>
-                                {{ $sev->name }}
+                                {{ ucfirst($sev->name) }}
                             </option>
                         @endforeach
                     </select>
@@ -302,7 +302,7 @@
         });
     }
     form.addEventListener('submit',function (e){
-        if(!latEl || !lngEl){
+        if(!latEl.value || !lngEl.value){
             e.preventDefault();
             pinHint.classList.remove('hidden');
         }
