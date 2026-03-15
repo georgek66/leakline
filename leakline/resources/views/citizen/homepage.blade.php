@@ -1,6 +1,6 @@
 {{-- resources/views/citizen/home.blade.php --}}
 @extends('layouts.home')
-
+@section('title', 'Home - LeakLine')
 @section('content')
     <h2 class="text-2xl font-bold mb-2">Report a water leak</h2>
     <p class="mb-4 text-gray-600">Citizen PWA will live here.</p>

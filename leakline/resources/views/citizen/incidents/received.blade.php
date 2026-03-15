@@ -1,5 +1,5 @@
 @extends('layouts.home')
-
+@section('title', 'Received Report - LeakLine')
 @section('content')
     <div class="max-w-3xl mx-auto p-6">
         <div class="bg-white border rounded-2xl p-6 shadow-sm">

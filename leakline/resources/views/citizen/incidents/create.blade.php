@@ -1,6 +1,6 @@
 {{-- create.blade.php view with map on the left and form on the right --}}
 @extends('layouts.home')
-
+@section('title','Report a Leak - LeakLine')
 @push('styles')
     <link
         rel="stylesheet"

@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#3A9AFF">
     <link rel="apple-touch-icon" href="/icons/180x180.png">
 
-    <title>{{ config('app.name', 'LeakLine') }}</title>
+    <title>@yield('title','Leakline')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
