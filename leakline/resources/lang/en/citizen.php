@@ -47,4 +47,23 @@ return [
     'status' => 'Status',
     'reported_at' => 'Reported',
     'track_not_found' => 'No report found for this Ticket ID.',
+
+    // Home page
+    'home_badge' => 'Citizen Portal',
+    'home_title' => 'Report a water leak in minutes',
+    'home_subtitle' => 'Help your city respond faster. Submit a leak report with location details and track the progress of your ticket any time.',
+    'home_cta_report' => 'Report a Leak',
+    'home_cta_track' => 'Track a Report',
+    'home_highlights' => 'Fast submission • Mobile friendly • Real-time status tracking',
+    'home_how_it_works' => 'How it works',
+    'home_step_1' => 'Open the report form and add leak details.',
+    'home_step_2' => 'Submit and receive your ticket reference.',
+    'home_step_3' => 'Track progress anytime from the portal.',
+
+    'install_info_title' => 'Install LeakLine on your device',
+    'install_info_subtitle' => 'You can install this app for faster access and offline support.',
+    'install_info_android' => 'Android: Open browser menu -> Install app / Add to Home screen.',
+    'install_info_ios' => 'iPhone (Safari): Tap Share -> Add to Home Screen.',
+    'install_info_desktop' => 'Desktop: Use your browser menu/address bar -> Install app.',
+
 ];
