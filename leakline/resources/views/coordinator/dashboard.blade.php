@@ -16,14 +16,15 @@
                         <label class="text-sm text-gray-600 mr-2">Sort by:</label>
                         <select name="sort" class="border rounded-lg px-3 pr-8 py-2 text-sm" onchange="this.form.submit()">
                             <option value="age" @selected(($sort ?? 'age') === 'age')>Newest</option>
-                            <option value="sla_risk" @selected(($sort ?? 'sla_risk') === 'sla_risk')>SLA risk</option>
+                            <option value="sla_risk" @selected(($sort ?? 'age') === 'sla_risk')>SLA risk</option>
+                            <option value="severity" @selected(($sort ?? 'age') === 'severity')>Severity</option>
                         </select>
                     </form>
 
                     <div class="mt-4 overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="border-b">
-                            <tr class="text-left tracking-wide text-black">
+                                <tr class="text-left tracking-wide text-black">
                                 <th class="py-2 pr-4">ID</th>
                                 <th class="py-2 pr-4">Ticket</th>
                                 <th class="py-2 pr-4">Status</th>
@@ -32,6 +33,7 @@
                                 <th class="py-2 pr-4">Response Due:</th>
                                 <th class="py-2 pr-4">Resolution Due:</th>
                                 <th class="py-2 pr-4">SLA Risk:</th>
+                                <th class="py-2 pr-4">Actions</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -85,13 +87,16 @@
                                             <span class="text-green-700">{{ $pretty }} left</span>
                                         @endif
                                     </td>
-
-
-
+                                    <td class="py-2 pr-4">
+                                        <a href="{{ route('coordinator.incidents.show', $i) }}"
+                                           class="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
+                                            View
+                                        </a>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td class="py-2 text-gray-500" colspan="8">No incidents yet.</td>
+                                    <td class="py-2 text-gray-500" colspan="9">No incidents yet.</td>
                                 </tr>
                             @endforelse
                             </tbody>

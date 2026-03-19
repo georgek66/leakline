@@ -84,6 +84,11 @@ class CoordinatorDashboardController extends Controller
 //
 //    }
 
+    public function show(Incident $incident)
+    {
+        $incident->load(['severity', 'slaRule', 'category', 'area', 'contact', 'media', 'events.actor']);
 
+        return view('coordinator.incidents.show', compact('incident'));
+    }
 
 }

@@ -96,4 +96,11 @@ class Incident extends Model
         }
         return (int)now()->diffInMinutes($due,false);
     }
+    public function slaResolutionMinutesLeft(){
+        $due = $this->resolutionDueAt();
+        if (!$due){
+            return null;
+        }
+        return (int)now()->diffInMinutes($due, false);
+    }
 }

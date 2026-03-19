@@ -153,7 +153,7 @@ class IncidentReportController extends Controller
             'ticket_id' => ['required', 'string', 'max:30'],
         ]);
 
-        $incident = Incident::with(['contact','category','severity'])
+        $incident = Incident::with(['contact','category','severity','media'])
             ->where('ticket_id', $data['ticket_id'])
             ->first();
 
@@ -251,7 +251,14 @@ class IncidentReportController extends Controller
                     $mime = explode(';', explode(':', $base64)[1])[0];
                     //  detect image or video
                     $type = str_starts_with($mime, 'video/') ? 'video' : 'image';
-                    $ext = explode('/', $mime)[1]; // extension
+                    $ext = match($mime) {
+                        'image/jpeg' => 'jpg',
+                        'image/png'  => 'png',
+                        'image/gif'  => 'gif',
+                        'video/mp4'  => 'mp4',
+                        'video/webm' => 'webm',
+                        default      => explode('/', $mime)[1],
+                    };// extension
                     //  generate filename with correct extension
                     $filename = Str::uuid(). '.' . $ext;
                     //  decode base64

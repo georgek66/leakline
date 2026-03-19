@@ -18,6 +18,10 @@ class IncidentContact extends Model
 
     ];
 
+    protected $casts = [
+        'consented_at' => 'datetime',
+    ];
+
     public function incident()
     {
         return $this->belongsTo(Incident::class);

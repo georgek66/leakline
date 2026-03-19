@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Incident;
+use App\Observers\IncidentObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        //add  incident observer
+        Incident::observe(IncidentObserver::class);
     }
 }

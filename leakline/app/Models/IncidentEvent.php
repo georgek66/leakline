@@ -21,4 +21,13 @@ class IncidentEvent extends Model
         'meta' => 'array',
         'created_at' => 'datetime'
     ];
+    public function actor()
+    {
+        return $this->belongsTo(User::class, 'actor_id');
+    }
+
+    public function incident()
+    {
+        return $this->belongsTo(Incident::class);
+    }
 }

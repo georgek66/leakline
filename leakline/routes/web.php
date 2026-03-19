@@ -6,6 +6,7 @@ use App\Http\Controllers\Coordinator\CoordinatorDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use function Pest\Laravel\get;
 
 Route::get('/', function () {
     return view('citizen.homepage');
@@ -86,7 +87,8 @@ Route::middleware(['auth', 'role:coordinator,admin'])
         Route::post('/incidents/{incident}/merge',[CoordinatorDashboardController::class, 'merge'])
             ->name('incidents.merge');
 
-
+        Route::get('/incidents/{incident}', [CoordinatorDashboardController::class, 'show'])
+            ->name('incidents.show');
     });
 
 // Offline page

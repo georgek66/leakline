@@ -41,17 +41,18 @@ return [
     'track_title' => 'Track a Report',
     'track_help' => 'Enter your Ticket ID to see the latest status.',
     'ticket_id' => 'Ticket ID',
-    'ticket_placeholder' => 'LL-2026-ABC123',
     'track_button' => 'Track',
-
+    'contact_info' => 'Contact info',
     'status' => 'Status',
     'reported_at' => 'Reported',
     'track_not_found' => 'No report found for this Ticket ID.',
+    'media'=> 'Files',
+    'no_media_attached' => 'No files attached.',
 
     // Home page
-    'home_badge' => 'Citizen Portal',
-    'home_title' => 'Report a water leak in minutes',
-    'home_subtitle' => 'Help your city respond faster. Submit a leak report with location details and track the progress of your ticket any time.',
+    'home_badge'     => 'Municipal Water Incident Platform',
+    'home_title'     => 'Report a water leak in just minutes',
+    'home_subtitle'  => 'LeakLine is a municipal-grade platform that connects citizens with utilities.From the moment you spot a leak to the day it\'s repaired. Submit reports offline, track progress in real time, and help reduce water loss in your community.',
     'home_cta_report' => 'Report a Leak',
     'home_cta_track' => 'Track a Report',
     'home_highlights' => 'Fast submission • Mobile friendly • Real-time status tracking',
