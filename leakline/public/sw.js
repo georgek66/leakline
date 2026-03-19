@@ -176,6 +176,8 @@ async function syncPendingReports() {
 
     console.log("[SW] pending reports:", pending);
 
+    let failedCount = 0;
+
     for (const report of pending) {
         console.log("[SW] sending report:", report.client_id);
         try {
@@ -186,16 +188,13 @@ async function syncPendingReports() {
                 },
                 body: JSON.stringify(report),
             });
-
-
-            // check if http status is 200
+            // check if http status is 200-299
             if (response.ok) {
-
                 const data = await response.json();
                 const ticketId = data.ticket_id;
                 console.log("[SW] sync success! ticket:", ticketId);
                 await db.delete("pending-reports", report.id);
-                // Only notify when permission granted
+                // Only notify when permission granted and we have a ticket ID from server
                 try {
                     await self.registration.showNotification("LeakLine", {
                         body: `Your report was submitted successfully! Ticket ID: ${ticketId}`,
@@ -207,13 +206,26 @@ async function syncPendingReports() {
                 } catch (err) {
                     console.log("[SW] notification skipped:", err.message);
                 }
+            } else {
+                // Server returned error status - will be retried
+                console.warn(`[SW] sync failed for ${report.client_id}: HTTP ${response.status}`);
+                failedCount++;
             }
         } catch (err) {
-            console.error("Sync failed, will retry:", err);
+            // Network or parsing error - will be retried
+            console.error(`[SW] sync error for ${report.client_id}:`, err);
+            failedCount++;
         }
     }
 
+    // If any reports failed, reject so browser retries the sync later
+    if (failedCount > 0) {
+        throw new Error(`Failed to sync ${failedCount} report(s). Will retry later.`);
+    }
+
+    console.log("[SW] all reports synced successfully");
 }
+
 // When user clicks the notification it opens the ticket page
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
@@ -223,6 +235,6 @@ self.addEventListener('notificationclick', (event) => {
     if (url) {
         event.waitUntil(
             clients.openWindow(url)
-        );
+        )
     }
 });

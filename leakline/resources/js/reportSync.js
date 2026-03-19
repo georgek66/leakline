@@ -113,3 +113,40 @@ if (reportForm) {
         }
     });
 }
+// Listen for when user comes back online
+window.addEventListener('online', async () => {
+    console.log('[reportSync] User is back online - triggering sync');
+
+    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        try {
+            const sw = await navigator.serviceWorker.ready;
+            await sw.sync.register('sync-reports');
+            console.log('[reportSync] Sync registered on online event');
+        } catch (err) {
+            console.error('[reportSync] Failed to register sync:', err);
+        }
+    }
+});
+
+// Also register sync on page load if there are pending reports
+document.addEventListener('DOMContentLoaded', async () => {
+    if (navigator.onLine) {
+        const db = await openDB();
+        const pending = await new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE, 'readonly');
+            const req = tx.objectStore(STORE).getAll();
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+
+        if (pending.length > 0 && 'serviceWorker' in navigator && 'SyncManager' in window) {
+            console.log('[reportSync] Found pending reports on page load - triggering sync');
+            try {
+                const sw = await navigator.serviceWorker.ready;
+                await sw.sync.register('sync-reports');
+            } catch (err) {
+                console.error('[reportSync] Failed to register sync:', err);
+            }
+        }
+    }
+});
