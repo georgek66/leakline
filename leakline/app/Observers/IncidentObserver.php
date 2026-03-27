@@ -50,14 +50,7 @@ class IncidentObserver
      */
     public function deleted(Incident $incident): void
     {
-        IncidentEvent::create([
-            'incident_id' => $incident->id,
-            'actor_id'    => auth()->id(),
-            'event_type'  => 'deleted',
-            'message'     => 'Incident was deleted.',
-            'meta'        => [],
-            'created_at'  => now(),
-        ]);
+        //
     }
 
     /**

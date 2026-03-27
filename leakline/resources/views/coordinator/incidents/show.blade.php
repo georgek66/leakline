@@ -36,6 +36,12 @@
         </div>
     </x-slot>
 
+    @if(session('status'))
+        <div class="rounded-md bg-green-50 p-3 text-sm text-green-700">
+            {{ session('status') }}
+        </div>
+    @endif
+
     <div class="py-8">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
@@ -99,6 +105,32 @@
                     </div>
                 </div>
             </div>
+
+            @if(!empty($duplicates) && $duplicates->count())
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Possible Duplicates</h3>
+
+                        @foreach($duplicates as $d)
+                            <div class="border rounded-md p-3 mb-2 text-sm">
+                                <div><strong>#{{ $d->id }}</strong> ({{ $d->ticket_id ?? 'No ticket' }})</div>
+                                <div class="text-gray-500">{{ $d->created_at?->format('d-m-Y H:i') ?? '—' }} | {{ $d->status }} | {{ $d->duplicates_count }} nearby duplicates</div>
+
+                                <form method="POST" action="{{ route('coordinator.incidents.merge', $incident) }}" class="mt-2">
+                                    @csrf
+                                    <input type="hidden" name="duplicate_id" value="{{ $d->id }}">
+
+                                    <button type="submit"
+                                            class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700">
+                                        Merge
+                                    </button>
+                                </form>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
 
             {{-- SLA Timers card --}}
             @if($incident->slaRule)

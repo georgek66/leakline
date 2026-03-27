@@ -153,7 +153,7 @@ class IncidentReportController extends Controller
             'ticket_id' => ['required', 'string', 'max:30'],
         ]);
 
-        $incident = Incident::with(['contact','category','severity','media'])
+        $incident = Incident::with(['contact','category','severity','media','events.actor'])
             ->where('ticket_id', $data['ticket_id'])
             ->first();
 

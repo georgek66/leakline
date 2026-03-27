@@ -21,6 +21,7 @@ class Incident extends Model
         'client_id',
     ];
 
+    protected $appends = ['duplicates_count'];
 
     public function reporter()
     {
@@ -102,5 +103,34 @@ class Incident extends Model
             return null;
         }
         return (int)now()->diffInMinutes($due, false);
+    }
+
+    public function nearbyDuplicatesCount(): int
+    {
+        $latitude = $this->latitude;
+        $longitude = $this->longitude;
+
+        if ($latitude === null|| $longitude === null) {
+            return 0;
+        }
+
+        $distanceMeters = 75;
+        $hours = 24;
+
+        return Incident::query()
+            ->select('incidents.*')
+            ->whereKeyNot($this->id)
+            ->whereNotNull('location_geom')
+            ->where('created_at', '>=', now()->subHours($hours))
+            ->whereNotIn('status', ['closed', 'resolved', 'cancelled'])
+            ->whereRaw(
+                "ST_DWithin(incidents.location_geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)",
+                [$longitude, $latitude, $distanceMeters]
+            )
+            ->count();
+    }
+    public function getDuplicatesCountAttribute()
+    {
+        return $this->nearbyDuplicatesCount();
     }
 }

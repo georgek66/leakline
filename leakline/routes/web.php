@@ -81,11 +81,9 @@ Route::middleware(['auth', 'role:coordinator,admin'])
         Route::get('/dashboard', [CoordinatorDashboardController::class, 'index'])
             ->name('dashboard');
 
-        Route::get('/incidents/{incident}/duplicates',[CoordinatorDashboardController::class, 'duplicates'])
-            ->name('incidents.duplicates');
-
-        Route::post('/incidents/{incident}/merge',[CoordinatorDashboardController::class, 'merge'])
+        Route::post('/incidents/{incident}/merge', [CoordinatorDashboardController::class, 'merge'])
             ->name('incidents.merge');
+
 
         Route::get('/incidents/{incident}', [CoordinatorDashboardController::class, 'show'])
             ->name('incidents.show');

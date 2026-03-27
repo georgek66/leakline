@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Coordinator;
 
 use App\Http\Controllers\Controller;
+use App\Models\IncidentEvent;
 use Illuminate\Http\Request;
 use App\Models\Incident;
+use App\Models\IncidentRelation;
+use Illuminate\Support\Facades\DB;
+
 class CoordinatorDashboardController extends Controller
 {
     public function index(Request $request)
@@ -45,50 +49,87 @@ class CoordinatorDashboardController extends Controller
         return view('coordinator.dashboard', compact('incidents', 'sort', 'incidentMarkers'));
     }
 
-    // Find possible duplicates
-//    public function duplicates(Incident $incident)
-//    {
-//
-//        $distanceMeters = 100;
-//        $hours = 24;
-//
-//        $target = Incident::query()
-//            ->select('incidents.*')
-//            ->selectRaw('ST_Y(location_geom::geometry) as lat')
-//            ->selectRaw('ST_X(location_geom::geometry) as lng')
-//            ->whereKey($incident->id)
-//            ->whereNotNull('location_geom')
-//            ->firstOrFail();
-//
-//        $candidates = Incident::query()
-//            ->select('incidents.*')
-//            ->selectRaw('ST_Y(location_geom::geometry) as lat')
-//            ->selectRaw('ST_X(location_geom::geometry) as lng')
-//            ->selectRaw(
-//                "ST_Distance(incidents.location_geom::geography, ?::geography) as meters",
-//                [$target->location_geom]
-//            )
-//            ->whereKeyNot($target->id)
-//            ->whereNotNull('location_geom')
-//            ->where('created_at', '>=',now()->subHours($hours))
-//            ->whereNotIn('status',['closed','resolved'])
-//            ->whereRaw(
-//                "ST_DWithin(incidents.location_geom::geography, ?::geography, ?)",
-//                [$target->location_geom,$distanceMeters]
-//            )
-//            ->orderBy('meters')
-//            ->limit(10)
-//            ->get();
-//
-//        return view('coordinator.incidents.duplicates',compact('target','candidates','distanceMeters','hours'));
-//
-//    }
+
 
     public function show(Incident $incident)
     {
         $incident->load(['severity', 'slaRule', 'category', 'area', 'contact', 'media', 'events.actor']);
 
-        return view('coordinator.incidents.show', compact('incident'));
+        $duplicates = collect(); // save in an empty collection
+
+        if ($incident->latitude !== null && $incident->longitude !== null) {
+            $duplicates = Incident::query()
+                ->whereKeyNot($incident->id)
+                ->whereNotNull('location_geom')
+                ->where('created_at', '>=', now()->subHours(24))
+                ->whereNotIn('status', ['closed', 'resolved', 'cancelled'])
+                ->whereRaw(
+                    "ST_DWithin(incidents.location_geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)",
+                    [$incident->longitude, $incident->latitude, 75]
+                )
+                ->latest()
+                ->limit(10)
+                ->get();
+        }
+        return view('coordinator.incidents.show', compact('incident','duplicates'));
     }
 
+    public function merge(Request $request, Incident $incident){
+        $data = $request->validate([
+            'duplicate_id' => ['required', 'integer', 'exists:incidents,id'],
+        ]);
+
+        // Don't allow self-merge
+
+        if ((int) $data['duplicate_id'] === (int) $incident->id) {
+            return back()->with('status', 'You cannot merge an incident into itself.');
+        }
+
+        $duplicate = Incident::findOrFail($data['duplicate_id']);
+
+        DB::transaction(function () use ($incident, $duplicate) {
+            // Save relation (duplicate -> main incident)
+            IncidentRelation::firstOrCreate(
+                [
+                    'source_incident_id' => $duplicate->id,
+                    'target_incident_id' => $incident->id,
+                    'relation' => 'duplicate_of',
+                ],
+                [
+                    'merged_by' => auth()->id(),
+                    'merged_at' => now(),
+                    'note' => 'Merged from coordinator incident page',
+                ]
+            );
+
+            // Mark duplicate as cancelled so queue stays clean
+            if (!in_array($duplicate->status, ['closed', 'resolved', 'cancelled'], true)) {
+                $duplicate->update([
+                    'status' => 'cancelled',
+                    'closed_at' => now(),
+                ]);
+            }
+
+            // timeline entries
+            IncidentEvent::create([
+                'incident_id' => $incident->id,
+                'actor_id' => auth()->id(),
+                'event_type' => 'merged',
+                'message' => "Merged duplicate incident #{$duplicate->id} into this incident.",
+                'meta' => ['duplicate_id' => $duplicate->id],
+                'created_at' => now(),
+            ]);
+
+            IncidentEvent::create([
+                'incident_id' => $duplicate->id,
+                'actor_id' => auth()->id(),
+                'event_type' => 'merged',
+                'message' => "Marked as duplicate of incident #{$incident->id}.",
+                'meta' => ['target_incident_id' => $incident->id],
+                'created_at' => now(),
+            ]);
+        });
+
+        return back()->with('status', 'Duplicate merged successfully.');
+    }
 }

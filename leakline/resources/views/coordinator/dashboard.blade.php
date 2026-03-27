@@ -5,7 +5,10 @@
             Coordinator Dashboard
         </h2>
     </x-slot>
-
+    @push('styles')
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+    @endpush
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
@@ -33,6 +36,7 @@
                                 <th class="py-2 pr-4">Response Due:</th>
                                 <th class="py-2 pr-4">Resolution Due:</th>
                                 <th class="py-2 pr-4">SLA Risk:</th>
+                                <th class="py-2 pr-4">Duplicates:</th>
                                 <th class="py-2 pr-4">Actions</th>
                             </tr>
                             </thead>
@@ -43,7 +47,7 @@
                                     <td class="py-2 pr-4">{{ $i->ticket_id ?? $i->id }}</td>
                                     <td class="py-2 pr-4">{{ $i->status }}</td>
                                     <td class="py-2 pr-4">{{ $i->severity?->name ?? "-" }}</td>
-                                    <td class="py-2 pr-4">{{ $i->created_at?->format('Y-m-d H:i') }}</td>
+                                    <td class="py-2 pr-4">{{ $i->created_at?->format('d-m-Y H:i') ?? '-' }}</td>
 
                                     @php
                                         $minutesLeft = $i->slaMinutesLeft();
@@ -73,8 +77,8 @@
                                         }
                                     @endphp
 
-                                    <td class="py-2 pr-4">{{ $i->responseDueAt()?->format('Y-m-d H:i') ?? '—' }}</td>
-                                    <td class="py-2 pr-4">{{ $i->resolutionDueAt()?->format('Y-m-d H:i') ?? '—' }}</td>
+                                    <td class="py-2 pr-4">{{ $i->responseDueAt()?->format('d-m-Y H:i') ?? '—' }}</td>
+                                    <td class="py-2 pr-4">{{ $i->resolutionDueAt()?->format('d-m-Y H:i') ?? '—' }}</td>
 
                                     <td class="py-2 pr-4">
                                         @if (is_null($minutesLeft))
@@ -88,6 +92,15 @@
                                         @endif
                                     </td>
                                     <td class="py-2 pr-4">
+                                        @if(($i->duplicates_count ?? 0) > 0)
+                                            <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                                                {{ $i->duplicates_count }} possible
+                                            </span>
+                                        @else
+                                            <span class="text-gray-400">0</span>
+                                        @endif
+                                    </td>
+                                    <td class="py-2 pr-4">
                                         <a href="{{ route('coordinator.incidents.show', $i) }}"
                                            class="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
                                             View
@@ -96,7 +109,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td class="py-2 text-gray-500" colspan="9">No incidents yet.</td>
+                                    <td class="py-2 text-gray-500" colspan="10">No incidents yet.</td>
                                 </tr>
                             @endforelse
                             </tbody>
@@ -125,10 +138,10 @@
     </div>
 
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    @push('scripts')
+        <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
-    <script>
+        <script>
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Leaflet loaded?', typeof L !== 'undefined');
             console.log('map div exists?', !!document.getElementById('map'));
@@ -140,32 +153,47 @@
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
-            const incidents = @json($incidentMarkers);
+
+            const incidents = @json($incidentMarkers ?? []);
+            if (!Array.isArray(incidents)) return;
             console.log('isArray?', Array.isArray(incidents), 'count:', incidents?.length);
 
+            // add markers to clusters
+            const clusterGroup = L.markerClusterGroup({
+                chunkedLoading: true,
+                showCoverageOnHover : false,
+                maxClusterRadius: 50
+            });
             const bounds = [];
+
 
             incidents.forEach(i => {
                 const lat = Number(i.lat);
                 const lng = Number(i.lng);
                 if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
-                L.marker([lat, lng]).addTo(map)
+                const marker = L.marker([lat, lng])
                     .bindPopup(`
                     <strong>Ticket # ${i.id}</strong><br/>
                     Status: ${i.status}<br/>
 
                     `);
-
+                clusterGroup.addLayer(marker);
                 bounds.push([lat, lng]);
             });
 
+            map.addLayer(clusterGroup);
+
             if (bounds.length) {
-                map.fitBounds(bounds, { padding: [30, 30] });
+                map.fitBounds(L.latLngBounds(bounds), { padding: [30, 30] });
             }
+
+
+
+
         });
     </script>
-
+    @endpush
 
 
 </x-app-layout>
