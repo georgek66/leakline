@@ -84,7 +84,7 @@
                             </p>
                             <p>
                                 <strong>{{ __('citizen.status') }}:</strong>
-                                {{ ucfirst($incident->status) }}
+                                {{ ucfirst(str_replace('_', ' ', $incident->status)) }}
                             </p>
                             <p class="text-sm text-gray-600 mt-2">
                                 {{ __('citizen.reported_at') }}:

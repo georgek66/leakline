@@ -37,8 +37,18 @@
     </x-slot>
 
     @if(session('status'))
-        <div class="rounded-md bg-green-50 p-3 text-sm text-green-700">
-            {{ session('status') }}
+        <div class="mx-auto mt-4 max-w-6xl sm:px-6 lg:px-8">
+            <div class="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+                <div class="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                    <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.78-9.72a.75.75 0 00-1.06-1.06L9.25 10.69 7.78 9.22a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-black">Assignment updated</p>
+                    <p class="text-sm text-black">{{ session('status') }}</p>
+                </div>
+            </div>
         </div>
     @endif
 
@@ -96,7 +106,7 @@
                         </div>
                     </div>
 
-                    {{-- Free-text report details --}}
+                    {{-- Description--}}
                     <div class="mt-6 border-t pt-4">
                         <p class="text-gray-500 text-sm mb-1">Description</p>
                         <p class="text-gray-900 whitespace-pre-line">
@@ -105,6 +115,113 @@
                     </div>
                 </div>
             </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Technician Assignment</h3>
+
+                    @php
+                        $fieldStatus = $currentWorkOrder?->field_status ?? null;
+                        $fieldStatusLabel = match ($fieldStatus) {
+                            'on_route' => 'On route',
+                            'on_site' => 'On site',
+                            default => 'Not set',
+                        };
+                        $fieldStatusBadge = match ($fieldStatus) {
+                            'on_route' => 'bg-sky-100 text-sky-700',
+                            'on_site' => 'bg-emerald-100 text-emerald-700',
+                            default => 'bg-gray-100 text-gray-700',
+                        };
+                    @endphp
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
+                        <div>
+                            <p class="text-gray-500">Assigned Technician</p>
+                            <p class="font-medium text-gray-900">{{ $currentWorkOrder?->technician?->name ?? 'Not assigned' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Technician Email</p>
+                            <p class="font-medium text-gray-900">{{ $currentWorkOrder?->technician?->email ?? '—' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Job Status</p>
+                            <p class="font-medium text-gray-900">{{ $currentWorkOrder ? str_replace('_', ' ', $currentWorkOrder->status) : 'No job listing yet' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Field Status</p>
+                            <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $fieldStatusBadge }}">
+                                {{ $fieldStatusLabel }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="mb-2 text-xs text-gray-500">
+                        Choose a technician based on current workload. "Available" means no active assigned/in-progress jobs.
+                    </p>
+
+                    <form method="POST" action="{{ route('coordinator.incidents.assign-technician', $incident) }}" class="flex flex-col sm:flex-row gap-3">
+                        @csrf
+                        <div class="flex-1">
+                            <select name="technician_id" class="w-full rounded-md border-gray-300 text-sm" required>
+                            <option value="">Select technician</option>
+                            @foreach($technicians as $technician)
+                                <option value="{{ $technician->id }}" @selected($currentWorkOrder?->assigned_to === $technician->id)>
+                                    {{ $technician->name }} - {{ $technician->availability_label }} (Active: {{ $technician->active_jobs_count }}, Inbox: {{ $technician->inbox_jobs_count }}){{ $currentWorkOrder?->assigned_to === $technician->id ? ' — currently assigned' : '' }}
+                                </option>
+                            @endforeach
+                            </select>
+
+                            @if($errors->has('technician_id'))
+                                <p class="mt-2 text-sm font-medium text-red-600">{{ $errors->first('technician_id') }}</p>
+                            @endif
+                        </div>
+
+                        <button type="submit"
+                                class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                            Assign Technician
+                        </button>
+                    </form>
+
+                    <div class="mt-4 overflow-x-auto rounded-md border border-gray-200">
+                        <table class="min-w-full text-left text-sm">
+                            <thead class="bg-gray-50 text-gray-600">
+                            <tr>
+                                <th class="px-3 py-2 font-semibold">Technician</th>
+                                <th class="px-3 py-2 font-semibold">Availability</th>
+                                <th class="px-3 py-2 font-semibold">Active Jobs</th>
+                                <th class="px-3 py-2 font-semibold">Inbox</th>
+                                <th class="px-3 py-2 font-semibold">In Progress</th>
+                                <th class="px-3 py-2 font-semibold">Completed</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @forelse($technicians as $technician)
+                                <tr class="border-t border-gray-100">
+                                    <td class="px-3 py-2">
+                                        <p class="font-medium text-gray-900">{{ $technician->name }}</p>
+                                        <p class="text-xs text-gray-500">{{ $technician->email ?? 'No email' }}</p>
+                                    </td>
+                                    <td class="px-3 py-2">
+                                        <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $technician->availability_badge }}">
+                                            {{ $technician->availability_label }}
+                                        </span>
+                                    </td>
+                                    <td class="px-3 py-2 font-medium text-gray-900">{{ $technician->active_jobs_count }}</td>
+                                    <td class="px-3 py-2 text-gray-700">{{ $technician->inbox_jobs_count }}</td>
+                                    <td class="px-3 py-2 text-gray-700">{{ $technician->in_progress_jobs_count }}</td>
+                                    <td class="px-3 py-2 text-gray-700">{{ $technician->completed_jobs_count }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-3 py-3 text-center text-gray-500">No technicians found.</td>
+                                </tr>
+                            @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
 
             @if(!empty($duplicates) && $duplicates->count())
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">

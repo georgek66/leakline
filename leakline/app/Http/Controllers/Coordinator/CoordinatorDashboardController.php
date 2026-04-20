@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Models\Incident;
 use App\Models\IncidentRelation;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Models\WorkOrder;
 
 class CoordinatorDashboardController extends Controller
 {
@@ -15,7 +17,18 @@ class CoordinatorDashboardController extends Controller
     {
 
         $sort = $request->query('sort','age');
+        $status = $request->query('sort_status');
         $q= Incident::query()->with(['severity', 'slaRule']);
+
+        if ($status) {
+            $q->where('status', $status);
+        }
+        $statuses = Incident::query()
+            ->select('status')
+            ->distinct()
+            ->orderBy('status')
+            ->pluck('status');
+
 
         if ($sort === 'sla_risk') {
             $q->leftJoin('sla_rules', 'sla_rules.severity_id', '=', 'incidents.severity_id')
@@ -46,7 +59,7 @@ class CoordinatorDashboardController extends Controller
             ->values()
             ->toArray();
 
-        return view('coordinator.dashboard', compact('incidents', 'sort', 'incidentMarkers'));
+        return view('coordinator.dashboard', compact('incidents', 'sort', 'incidentMarkers','statuses','status'));
     }
 
 
@@ -54,6 +67,42 @@ class CoordinatorDashboardController extends Controller
     public function show(Incident $incident)
     {
         $incident->load(['severity', 'slaRule', 'category', 'area', 'contact', 'media', 'events.actor']);
+
+        $currentWorkOrder = WorkOrder::query()
+            ->where('incident_id', $incident->id)
+            ->whereNotIn('status', ['done', 'cancelled'])
+            ->with(['technician'])
+            ->latest('id')
+            ->first();
+
+        $technicians = User::query()
+            ->whereHas('role', fn ($query) => $query->where('name', 'technician'))
+            ->withCount([
+                'workOrders as active_jobs_count' => fn ($query) => $query->whereIn('status', ['assigned', 'in_progress', 'on_hold']),
+                'workOrders as inbox_jobs_count' => fn ($query) => $query->where('status', 'assigned'),
+                'workOrders as in_progress_jobs_count' => fn ($query) => $query->whereIn('status', ['in_progress', 'on_hold']),
+                'workOrders as completed_jobs_count' => fn ($query) => $query->whereIn('status', ['done', 'cancelled']),
+            ])
+            ->orderBy('active_jobs_count')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'phone']);
+
+        $technicians->transform(function (User $technician) {
+            $technician->availability_label = match (true) {
+                $technician->active_jobs_count === 0 => 'Available',
+                $technician->active_jobs_count <= 2 => 'Busy',
+                default => 'Busy',
+            };
+
+            $technician->availability_badge = match (true) {
+                $technician->active_jobs_count === 0 => 'bg-green-100 text-green-700',
+                $technician->active_jobs_count <= 2 => 'bg-amber-100 text-amber-700',
+                default => 'bg-amber-100 text-amber-700',
+            };
+
+            return $technician;
+        });
+
 
         $duplicates = collect(); // save in an empty collection
 
@@ -71,8 +120,65 @@ class CoordinatorDashboardController extends Controller
                 ->limit(10)
                 ->get();
         }
-        return view('coordinator.incidents.show', compact('incident','duplicates'));
+        return view('coordinator.incidents.show', compact('incident', 'duplicates', 'technicians', 'currentWorkOrder'));
     }
+
+    // Assign directly to a technician
+    public function assignTechnician(Request $request, Incident $incident)
+    {
+        $data = $request->validate([
+            'technician_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $technician = User::query()->with('role')->findOrFail($data['technician_id']);
+
+        if ($technician->role?->name !== 'technician') {
+            return back()->withErrors(['technician_id' => 'Selected user is not a technician.']);
+        }
+
+        $workOrder = WorkOrder::query()
+            ->where('incident_id', $incident->id)
+            ->whereNotIn('status', ['done', 'cancelled'])
+            ->latest('id')
+            ->first();
+
+        if ($workOrder && in_array($workOrder->status, ['assigned', 'in_progress', 'on_hold'], true) && (int) $workOrder->assigned_to === (int) $technician->id) {
+            return back()->withErrors([
+                'technician_id' => 'This technician is already assigned to this incident. Ask them to reject it first or choose another technician.',
+            ]);
+        }
+
+        if (!$workOrder) {
+            $workOrder = WorkOrder::create([
+                'incident_id' => $incident->id,
+                'assigned_to' => $technician->id,
+                'status' => 'assigned',
+                'field_status' => null,
+            ]);
+        } else {
+            $workOrder->update([
+                'assigned_to' => $technician->id,
+                'status' => 'assigned',
+                'field_status' => null,
+            ]);
+        }
+
+        IncidentEvent::create([
+            'incident_id' => $incident->id,
+            'actor_id' => auth()->id(),
+            'event_type' => 'assigned',
+            'message' => "Assigned to technician: {$technician->name}.",
+            'meta' => [
+                'work_order_id' => $workOrder->id,
+                'technician_id' => $technician->id,
+                'technician_name' => $technician->name,
+            ],
+            'created_at' => now(),
+        ]);
+
+        return back()->with('status', 'Incident assigned to technician successfully.');
+    }
+
 
     public function merge(Request $request, Incident $incident){
         $data = $request->validate([
