@@ -219,7 +219,7 @@
 
 
 
-    // Add a geocoder control for searching addresses (optional)
+    // Add a geocoder control for searching addresses
     if (typeof L.Control.Geocoder !== 'undefined') {
         const geocoder = L.Control.geocoder({
             defaultMarkGeocode: false,

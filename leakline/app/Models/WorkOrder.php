@@ -8,14 +8,14 @@ class WorkOrder extends Model
 {
     protected $fillable = [
         'incident_id',
-        'assigned_team_id',
         'assigned_to',
         'priority',
         'due_date',
         'status',
         'resolution_code_id',
         'estimated_water_saved_liters',
-        'closure_notes'
+        'closure_notes',
+        'field_status',
     ];
 
     public function incident()
@@ -23,10 +23,6 @@ class WorkOrder extends Model
         return $this->belongsTo(Incident::class);
     }
 
-    public function team()
-    {
-        return $this->belongsTo(Team::class, 'assigned_team_id');
-    }
 
     public function technician()
     {

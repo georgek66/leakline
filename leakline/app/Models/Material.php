@@ -15,6 +15,11 @@ class Material extends Model
         'cost'
     ];
 
+    protected $casts = [
+        'quantity' => 'decimal:2',
+        'cost' => 'decimal:2',
+    ];
+
     public function workOrder()
     {
         return $this->belongsTo(WorkOrder::class, 'workorder_id');

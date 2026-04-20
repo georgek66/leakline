@@ -14,7 +14,7 @@ class IncidentObserver
     {
         IncidentEvent::create([
             'incident_id' => $incident->id,
-            'actor_id' => auth()->id(),
+            'actor_id' => auth()->id() ?? null,
             'event_type' => 'created',
             'message' => 'Incident reported and created',
             'meta' => [],

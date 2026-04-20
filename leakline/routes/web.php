@@ -3,7 +3,9 @@
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Citizen\IncidentReportController;
 use App\Http\Controllers\Coordinator\CoordinatorDashboardController;
+use App\Http\Controllers\Technician\TechnicianController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use function Pest\Laravel\get;
@@ -71,7 +73,14 @@ Route::post('citizen/report/sync',[IncidentReportController::class, 'storeSync']
     ->name('citizen.report.sync')
     ->withoutMiddleware(App\Http\Middleware\SetLocale::class);
 
-
+// Admin routes
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+            ->name('dashboard');
+    });
 
 // Coordinator routes
 Route::middleware(['auth', 'role:coordinator,admin'])
@@ -87,8 +96,39 @@ Route::middleware(['auth', 'role:coordinator,admin'])
 
         Route::get('/incidents/{incident}', [CoordinatorDashboardController::class, 'show'])
             ->name('incidents.show');
+
+        Route::post('/incidents/{incident}/assign-technician', [CoordinatorDashboardController::class, 'assignTechnician'])
+            ->name('incidents.assign-technician');
+
+//        Route::post('/incidents/{incident}/assign-team', [CoordinatorDashboardController::class, 'assignTechnician'])
+//            ->name('incidents.assign-team');
+
     });
 
+// Technician routes
+Route::middleware(['auth', 'role:technician,admin'])
+    ->prefix('technician')
+    ->name('technician.')
+    ->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Technician\TechnicianController::class, 'index'])
+            ->name('dashboard');
+
+        Route::get('/workorders/{workOrder}', [\App\Http\Controllers\Technician\TechnicianController::class, 'show'])
+            ->name('workorders.show');
+
+        Route::post('/workorders/{workOrder}/accept', [TechnicianController::class, 'accept'])
+            ->name('workorders.accept');
+
+        Route::post('/workorders/{workOrder}/decline', [TechnicianController::class, 'decline'])
+            ->name('workorders.decline');
+
+        Route::post('/workorders/{workOrder}/field-status', [TechnicianController::class, 'updateFieldStatus'])
+            ->name('workorders.field-status');
+
+
+        Route::post('/workorders/{workOrder}/status', [TechnicianController::class, 'updateStatus'])
+            ->name('workorders.status');
+    });
 // Offline page
 Route::view('/offline', 'offline')->name('offline');
 

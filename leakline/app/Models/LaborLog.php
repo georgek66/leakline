@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class LaborLog extends Model
 {
+    public $timestamps = false;
+
     protected $fillable = [
         'workorder_id',
         'user_id',
@@ -17,7 +19,8 @@ class LaborLog extends Model
 
     protected $casts = [
         'started_at' => 'datetime',
-        'ended_at' => 'datetime'
+        'ended_at' => 'datetime',
+        'hours' => 'decimal:2',
     ];
 
     public function workOrder()

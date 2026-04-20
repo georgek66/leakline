@@ -72,6 +72,11 @@ class Incident extends Model
         return $this->belongsTo(SlaRule::class, 'severity_id', 'severity_id');
     }
 
+    public function workOrders()
+    {
+        return $this->hasMany(WorkOrder::class);
+    }
+
     //SLA Rules functions for timers
     public function responseDueAt(){
         $rule = $this->slaRule;
