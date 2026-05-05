@@ -23,6 +23,6 @@ class DatabaseSeeder extends Seeder
             SlaRulesSeeder::class,
             ResolutionCodesSeeder::class,
             MessageTemplatesSeeder::class,
-        ]);
+            ]);
     }
 }

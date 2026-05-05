@@ -71,7 +71,7 @@ class IncidentReportController extends Controller
             ]
         );
 
-        // Create primary incident record.
+        // Create incident record.
         $incident = Incident::create([
             'ticket_id'   => $this->generateTicketId(),
             'reporter_id' => auth()->id(), //if logged in
@@ -95,6 +95,16 @@ class IncidentReportController extends Controller
                 $validated['latitude'],  // Y (latitude)
                 $incident->id
             ]
+        );
+        // Assign area to each incident
+        DB::statement(
+            "UPDATE incidents i
+                     SET area_id = a.id
+                     FROM areas a
+                     WHERE i.id = ?
+                       AND i.location_geom IS NOT NULL
+                       AND ST_Contains(a.geometry, i.location_geom)",
+            [$incident->id]
         );
 
 

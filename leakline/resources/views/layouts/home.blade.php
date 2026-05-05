@@ -73,6 +73,10 @@
             <a href="{{ route('login') }}" class="hover:underline">
                 Staff Login
             </a>
+            <a href="{{ route('privacy') }}" class="hover:underline">
+                Privacy Policy
+            </a>
+
         </div>
     </div>
 </footer>

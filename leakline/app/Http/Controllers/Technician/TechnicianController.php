@@ -236,6 +236,11 @@ class TechnicianController extends Controller
                 'resolution_code_id' => $validated['resolution_code_id'],
             ]);
 
+            if ($workOrder->incident && $workOrder->incident->closed_at === null) {
+                $workOrder->incident->update([
+                    'closed_at' => now(),
+                ]);
+            }
             // Upload photos/videos to incident media
             if ($request->hasFile('media')) {
                 foreach ($request->file('media') as $file) {

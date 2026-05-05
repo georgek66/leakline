@@ -10,6 +10,7 @@ use App\Models\IncidentRelation;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\WorkOrder;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CoordinatorDashboardController extends Controller
 {
@@ -114,7 +115,7 @@ class CoordinatorDashboardController extends Controller
                 ->whereNotIn('status', ['closed', 'resolved', 'cancelled'])
                 ->whereRaw(
                     "ST_DWithin(incidents.location_geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)",
-                    [$incident->longitude, $incident->latitude, 75]
+                    [$incident->longitude, $incident->latitude, 50]
                 )
                 ->latest()
                 ->limit(10)
@@ -237,5 +238,174 @@ class CoordinatorDashboardController extends Controller
         });
 
         return back()->with('status', 'Duplicate merged successfully.');
+    }
+
+    // Report page
+    public function reports(Request $request){
+        // Total incidents
+        $totalIncidents = Incident::count();
+
+        // Open incidents
+        $openIncidents = Incident::where('status', 'open')->count();
+
+        // Resolved incidents
+        $resolvedIncidents = Incident::where('status', 'resolved')->count();
+
+        // Mttr in hours
+        $mttrHours = Incident::whereNotNull('closed_at')
+            ->whereIn('status', ['resolved', 'closed'])
+            ->selectRaw('AVG(EXTRACT(EPOCH FROM (closed_at - created_at)) / 3600)::float as mttr_hours')
+            ->value('mttr_hours');
+
+        // Incidents by severity
+        $incidentsBySeverity = Incident::query()
+            ->join('severity_levels', 'incidents.severity_id', '=', 'severity_levels.id')
+            ->select('severity_levels.name')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('severity_levels.id', 'severity_levels.name')
+            ->orderByDesc('total')
+            ->get();
+
+
+        // Incidents by area
+        $incidentsByArea = Incident::query()
+            ->leftJoin('areas', 'incidents.area_id', '=', 'areas.id')
+            ->selectRaw("COALESCE(areas.name, 'Unknown') as area_name")
+            ->selectRaw('COUNT(*) as total')
+            ->groupByRaw("COALESCE(areas.name, 'Unknown')")
+            ->orderByDesc('total')
+            ->get();
+
+
+        // Seasonal Trends
+        $seasonCase = "
+        CASE
+        WHEN EXTRACT(MONTH FROM created_at) IN (12, 1, 2) THEN 'Winter'
+        WHEN EXTRACT(MONTH FROM created_at) IN (3, 4, 5) THEN 'Spring'
+        WHEN EXTRACT(MONTH FROM created_at) IN (6, 7, 8) THEN 'Summer'
+        ELSE 'Autumn'
+        END
+        ";
+
+        $seasonalTrends = Incident::query()
+            ->selectRaw("$seasonCase as season, COUNT(*) as total")
+            ->groupByRaw($seasonCase)
+            ->orderByRaw("
+        CASE
+            WHEN $seasonCase = 'Winter' THEN 1
+            WHEN $seasonCase = 'Spring' THEN 2
+            WHEN $seasonCase = 'Summer' THEN 3
+            ELSE 4
+        END
+        ")
+            ->get();
+
+        // Recent incidents (last 30 days)
+        $recentIncidents = Incident::where('created_at', '>=', now()->subDays(30))->count();
+
+        // Statuses
+        $statuses = Incident::select('status')
+            ->selectRaw('count(*) as total')
+            ->groupBy('status')
+            ->get();
+
+
+
+
+        return view('coordinator.reports', compact(
+            'totalIncidents',
+            'openIncidents',
+            'resolvedIncidents',
+            'incidentsBySeverity',
+            'seasonalTrends',
+            'recentIncidents',
+            'incidentsByArea',
+            'statuses',
+            'mttrHours'));
+    }
+
+    public function generate(Request $request){
+
+        // Total incidents
+        $totalIncidents = Incident::count();
+
+        // Open incidents
+        $openIncidents = Incident::where('status', 'open')->count();
+
+        // Resolved incidents
+        $resolvedIncidents = Incident::where('status', 'resolved')->count();
+
+        // Mttr in hours
+        $mttrHours = Incident::whereNotNull('closed_at')
+            ->whereIn('status', ['resolved', 'closed'])
+            ->selectRaw('AVG(EXTRACT(EPOCH FROM (closed_at - created_at)) / 3600)::float as mttr_hours')
+            ->value('mttr_hours');
+
+        // Incidents by severity
+        $incidentsBySeverity = Incident::query()
+            ->join('severity_levels', 'incidents.severity_id', '=', 'severity_levels.id')
+            ->select('severity_levels.name')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('severity_levels.id', 'severity_levels.name')
+            ->orderByDesc('total')
+            ->get();
+
+        // Incidents by area
+        $incidentsByArea = Incident::query()
+            ->leftJoin('areas', 'incidents.area_id', '=', 'areas.id')
+            ->selectRaw("COALESCE(areas.name, 'Unknown') as area_name")
+            ->selectRaw('COUNT(*) as total')
+            ->groupByRaw("COALESCE(areas.name, 'Unknown')")
+            ->orderByDesc('total')
+            ->get();
+
+        // Seasonal Trends
+        $seasonCase = "
+        CASE
+            WHEN EXTRACT(MONTH FROM created_at) IN (12, 1, 2) THEN 'Winter'
+            WHEN EXTRACT(MONTH FROM created_at) IN (3, 4, 5) THEN 'Spring'
+            WHEN EXTRACT(MONTH FROM created_at) IN (6, 7, 8) THEN 'Summer'
+            ELSE 'Autumn'
+        END
+        ";
+
+        $seasonalTrends = Incident::query()
+            ->selectRaw("$seasonCase as season, COUNT(*) as total")
+            ->groupByRaw($seasonCase)
+            ->orderByRaw("
+        CASE
+            WHEN $seasonCase = 'Winter' THEN 1
+            WHEN $seasonCase = 'Spring' THEN 2
+            WHEN $seasonCase = 'Summer' THEN 3
+            ELSE 4
+        END
+        ")
+            ->get();
+
+        // Recent incidents (last 30 days)
+        $recentIncidents = Incident::where('created_at', '>=', now()->subDays(30))->count();
+
+        // Statuses
+        $statuses = Incident::select('status')
+            ->selectRaw('count(*) as total')
+            ->groupBy('status')
+            ->get();
+
+        $pdf = Pdf::loadView('coordinator.analytics', compact(
+            'totalIncidents',
+            'openIncidents',
+            'resolvedIncidents',
+            'incidentsBySeverity',
+            'seasonalTrends',
+            'recentIncidents',
+            'incidentsByArea',
+            'statuses',
+            'mttrHours'
+        ))
+            ->setPaper('a4', 'landscape')
+            ->setOption('margin-bottom', 0)
+            ->setOption('margin-top', 10);
+
+        return $pdf->download('analytics-report-' . now()->format('d-m-y') . '.pdf');
     }
 }

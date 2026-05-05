@@ -1,11 +1,10 @@
 <?php
 
-use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Citizen\IncidentReportController;
 use App\Http\Controllers\Coordinator\CoordinatorDashboardController;
 use App\Http\Controllers\Technician\TechnicianController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use function Pest\Laravel\get;
@@ -22,13 +21,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/register', [RegisteredUserController::class, 'create'])
-            ->name('register');
-        Route::post('/register', [RegisteredUserController::class, 'store'])
-            ->name('register.store');
-    });
 });
 
 //Citizen workflow routes
@@ -65,7 +57,8 @@ Route::prefix('citizen')
             return back();
         })->name('citizen.lang');
 
-
+        Route::view('/privacy', 'legal.privacy')
+            ->name('privacy');
 
     });
 // Offline sync route without middlewares
@@ -78,8 +71,10 @@ Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+        Route::get('/dashboard', [AdminUserController::class, 'index'])
             ->name('dashboard');
+
+        Route::resource('users', AdminUserController::class)->only(['index', 'edit', 'update', 'destroy']);
     });
 
 // Coordinator routes
@@ -99,6 +94,12 @@ Route::middleware(['auth', 'role:coordinator,admin'])
 
         Route::post('/incidents/{incident}/assign-technician', [CoordinatorDashboardController::class, 'assignTechnician'])
             ->name('incidents.assign-technician');
+
+        Route::get('/reports', [CoordinatorDashboardController::class, 'reports'])
+            ->name('reports');
+
+        Route::get('/reports/download',[CoordinatorDashboardController::class, 'generate'])
+            ->name('reports.download');
 
 //        Route::post('/incidents/{incident}/assign-team', [CoordinatorDashboardController::class, 'assignTechnician'])
 //            ->name('incidents.assign-team');

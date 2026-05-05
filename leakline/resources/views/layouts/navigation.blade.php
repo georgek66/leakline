@@ -17,6 +17,16 @@
                     </x-nav-link>
 
                     @auth
+                        <!-- Coordinator Tabs -->
+                        @if(auth()->user()->role->name === 'coordinator' || auth()->user()->role->name === 'admin')
+
+
+                            <x-nav-link :href="route('coordinator.reports')" :active="request()->routeIs('coordinator.reports')">
+                                {{ __('Analytics & Reporting') }}
+                            </x-nav-link>
+                        @endif
+
+                        <!-- Create Staff User only for Admin -->
                         @if(auth()->user()->role->name === 'admin')
                             <x-nav-link :href="route('register')" :active="request()->routeIs('register')">
                                 {{ __('Create Staff User') }}
