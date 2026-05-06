@@ -87,13 +87,6 @@
         .percentage {
             color: #666;
         }
-        .footer {
-            margin-top: 30px;
-            padding-top: 10px;
-            border-top: 1px solid #ddd;
-            font-size: 9px;
-            color: #999;
-        }
     </style>
 </head>
 <body>
@@ -201,7 +194,7 @@
     @endforelse
     </tbody>
 </table>
-
+<br>
 <!-- Seasonal Trends -->
 <h2>Seasonal Trends</h2>
 <table>
@@ -226,7 +219,5 @@
     @endforelse
     </tbody>
 </table>
-
-
 </body>
 </html>

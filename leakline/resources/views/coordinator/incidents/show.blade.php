@@ -58,8 +58,8 @@
             {{-- Quick navigation back to intake queue --}}
             <div>
                 <a href="{{ route('coordinator.dashboard') }}"
-                   class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline">
-                    ← Back to dashboard
+                   class="inline-flex items-center rounded-md bg-gray-600 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-700">
+                    Back to Dashboard
                 </a>
             </div>
 

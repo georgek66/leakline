@@ -148,7 +148,7 @@
                         <div>
                             <label class="mb-3 text-base font-semibold text-gray-900">Resolution Code *</label>
                             <select name="resolution_code_id" required class="w-full rounded-md border-gray-300 text-sm">
-                                <option value="">Select resolution</option>
+                                <option value="">Select resolution code</option>
                                 @foreach ($resolutionCodes as $code)
                                     <option value="{{ $code->id }}">{{ $code->code }} - {{ $code->label }}</option>
                                 @endforeach

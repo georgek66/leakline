@@ -11,7 +11,7 @@ class WorkOrderObserver
      */
     public function created(WorkOrder $workOrder): void
     {
-        //
+        $this->syncIncidentStatus($workOrder);
     }
 
     /**
@@ -19,33 +19,36 @@ class WorkOrderObserver
      */
     public function updated(WorkOrder $workOrder): void
     {
-        if (! $workOrder->wasChanged('status')){
+        if (!$workOrder->wasChanged('status')) {
             return;
         }
+        $this->syncIncidentStatus($workOrder);
 
+    }
+
+    public function syncIncidentStatus(WorkOrder $workOrder): void
+    {
         $incident = $workOrder->incident;
 
-        if ( ! $incident){
+        if (!$incident) {
             return;
         }
 
-        $incidentStatus = match($workOrder->status) {
+        $incidentStatus = match ($workOrder->status) {
             'assigned' => 'assigned',
-            'done'      => 'resolved',
-            'cancelled' => 'cancelled',
             'in_progress' => 'in_progress',
-            default     => $incident->status,
+            'done' => 'resolved',
+            'cancelled' => 'cancelled',
+            default => $incident->status,
         };
 
-        if($incident->status === $incidentStatus){
+        if ($incident->status === $incidentStatus) {
             return;
         }
 
-        $workOrder->incident->update([
-            'status' => $incidentStatus
+        $incident->update([
+            'status' => $incidentStatus,
         ]);
-
-
     }
 
     /**

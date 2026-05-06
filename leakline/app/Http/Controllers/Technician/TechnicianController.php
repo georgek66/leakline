@@ -241,6 +241,10 @@ class TechnicianController extends Controller
                     'closed_at' => now(),
                 ]);
             }
+            // Track uploaded media event to show it in timeline
+            $uploadedMediaCount = 0;
+            $uploadedMediaTypes = [];
+
             // Upload photos/videos to incident media
             if ($request->hasFile('media')) {
                 foreach ($request->file('media') as $file) {
@@ -253,7 +257,24 @@ class TechnicianController extends Controller
                         'file_url' => $path,
                         'media_type' => $type,
                     ]);
+                    $uploadedMediaCount++;
+                    $uploadedMediaTypes[] = $type;
                 }
+            }
+            // Timeline event when media is uploaded
+            if($uploadedMediaCount > 0) {
+                IncidentEvent::create([
+                    'incident_id' => $workOrder->incident_id,
+                    'actor_id' => auth()->id(),
+                    'event_type' => 'media_added',
+                    'message' => "Technician added {$uploadedMediaCount} media file(s): " . auth()->user()->name,
+                    'meta' => [
+                        'work_order_id' => $workOrder->id,
+                        'count' => $uploadedMediaCount,
+                        'types' => array_values(array_unique($uploadedMediaTypes)),
+                    ],
+                    'created_at' => now(),
+                ]);
             }
 
             $materialsData = $validated['materials_new'] ?? [];

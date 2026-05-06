@@ -28,7 +28,7 @@ return [
     'pin_required' => 'Please click the map to place a pin before submitting.',
 
     // Report received page
-    'report_received_title' => 'Report received ✅',
+    'report_received_title' => 'Report received!',
     'report_received_message' => 'Your leak report was submitted successfully.',
 
     'ticket_id_label' => 'Your Ticket ID',

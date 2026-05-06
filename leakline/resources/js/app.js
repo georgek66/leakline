@@ -17,7 +17,7 @@ if ("serviceWorker" in navigator) {
     });
 }
 
-import './reportSync';
+// import './reportSync';
 
 // Ask for notification permission
 if ('Notification' in window){

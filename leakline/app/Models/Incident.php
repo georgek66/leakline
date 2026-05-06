@@ -76,7 +76,6 @@ class Incident extends Model
     {
         return $this->hasMany(WorkOrder::class);
     }
-
     //SLA Rules functions for timers
     public function responseDueAt(){
         $rule = $this->slaRule;
@@ -119,7 +118,7 @@ class Incident extends Model
             return 0;
         }
 
-        $distanceMeters = 75;
+        $distanceMeters = 50;
         $hours = 24;
 
         return Incident::query()

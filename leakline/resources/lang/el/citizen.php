@@ -28,7 +28,7 @@ return [
     'pin_required' => 'Παρακαλώ πατήστε στον χάρτη πριν την υποβολή.',
 
     // Report received page
-    'report_received_title' => 'Η αναφορά καταχωρήθηκε ✅',
+    'report_received_title' => 'Η αναφορά καταχωρήθηκε!',
     'report_received_message' => 'Η αναφορά διαρροής υποβλήθηκε με επιτυχία.',
 
     'ticket_id_label' => 'Ο Κωδικός Αναφοράς σας',

@@ -156,7 +156,7 @@
 
                             <a href="{{ route('technician.workorders.show', ['workOrder' => $workOrder->id]) }}"
                                class="inline-flex w-full items-center justify-center rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700">
-                                Close Ticket/Update
+                                Close Ticket/Details
                             </a>
                         </div>
                     </article>
