@@ -52,7 +52,7 @@ return [
     // Home page
     'home_badge'     => 'Municipal Water Incident Platform',
     'home_title'     => 'Report a water leak in just minutes',
-    'home_subtitle'  => 'LeakLine is a municipal-grade platform that connects citizens with utilities.From the moment you spot a leak to the day it\'s repaired. Submit reports offline, track progress in real time, and help reduce water loss in your community.',
+    'home_subtitle'  => 'LeakLine is a municipal-grade platform that connects citizens with utilities.From the moment you spot a leak to the day it\'s repaired. Submit reports, track progress in real time, and help reduce water loss in your community.',
     'home_cta_report' => 'Report a Leak',
     'home_cta_track' => 'Track a Report',
     'home_highlights' => 'Fast submission • Mobile friendly • Real-time status tracking',

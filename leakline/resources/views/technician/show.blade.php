@@ -86,18 +86,28 @@
                     <div>
                         <p class="text-gray-500">Address / Location</p>
                         <p class="font-medium text-gray-900">{{ $workOrder->incident?->location ?? '—' }}</p>
-                        @if($workOrder->incident && $workOrder->incident->location)
-                            @php
-                                $mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' . urlencode($workOrder->incident->location);
-                            @endphp
+                        @php
+                            $mapsUrl = null;
 
-                            <a href = "{{ $mapsUrl }}"
-                            target = "_blank"
-                            rel="noopener noreferrer"
+                            if ($workOrder->incident?->latitude !== null && $workOrder->incident?->longitude !== null) {
+                                $mapsUrl = 'https://www.google.com/maps/dir/?api=1&destination='
+                                    . $workOrder->incident->latitude . ',' . $workOrder->incident->longitude;
+                            } elseif (!empty($workOrder->incident?->location)) {
+                                $mapsUrl = 'https://www.google.com/maps/search/?api=1&query='
+                                    . urlencode($workOrder->incident->location);
+                            }
+                        @endphp
+
+                        @if($mapsUrl)
+                            <a href="{{ $mapsUrl }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
                                class="mt-2 inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">
-                            Navigate
+                                Navigate
                             </a>
                         @endif
+
+
                     </div>
                     <div>
                         <p class="text-gray-500">Category</p>
