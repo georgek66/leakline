@@ -19,6 +19,7 @@ class Incident extends Model
         'latitude',
         'ticket_id',
         'client_id',
+        'closed_at',
     ];
 
     protected $appends = ['duplicates_count'];

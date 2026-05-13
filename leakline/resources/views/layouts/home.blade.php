@@ -62,16 +62,16 @@
 <!-- Footer -->
 <footer class="bg-gray-50 border-t py-4">
     <div class="max-w-7xl mx-auto text-center text-sm text-gray-600">
-        <p>&copy; {{ date('Y') }} LeakLine. All rights reserved.</p>
+        <p>&copy; {{ date('Y') }} LeakLine. {{__('nav.all_rights')}} </p>
         <div class="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-2">
         <a href="{{ route('citizen.report.create') }}" class="hover:underline">
-                Report a Leak
+            {{ __('nav.report') }}
             </a>
             <a href="{{ route('citizen.track.form') }}" class="hover:underline">
-                Track a Report
+                {{ __('nav.track') }}
             </a>
             <a href="{{ route('login') }}" class="hover:underline">
-                Staff Login
+                {{ __('nav.staff') }}
             </a>
             <a href="{{ route('privacy') }}" class="hover:underline">
                 Privacy Policy

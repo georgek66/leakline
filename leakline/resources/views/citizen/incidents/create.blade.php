@@ -121,7 +121,9 @@
                                 {{ old('consent') ? 'checked' : '' }}
                             >
                             <label for="consent" class="text-sm text-gray-700">
-                                {{ __('citizen.consent_text') }}
+                                <a href="{{ route('privacy') }}" class="underline text-gray-700 hover:text-blue-600" target="_blank" rel="noopener noreferrer">
+                                    {{ __('citizen.consent_text') }}
+                                </a>
                             </label>
                         </div>
                     </div>

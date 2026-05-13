@@ -253,7 +253,6 @@ class CoordinatorDashboardController extends Controller
 
         // Mttr in hours
         $mttrHours = Incident::whereNotNull('closed_at')
-            ->whereIn('status', ['resolved', 'closed'])
             ->selectRaw('AVG(EXTRACT(EPOCH FROM (closed_at - created_at)) / 3600)::float as mttr_hours')
             ->value('mttr_hours');
 
@@ -337,7 +336,6 @@ class CoordinatorDashboardController extends Controller
 
         // Mttr in hours
         $mttrHours = Incident::whereNotNull('closed_at')
-            ->whereIn('status', ['resolved', 'closed'])
             ->selectRaw('AVG(EXTRACT(EPOCH FROM (closed_at - created_at)) / 3600)::float as mttr_hours')
             ->value('mttr_hours');
 

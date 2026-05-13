@@ -33,22 +33,25 @@ class WorkOrderObserver
         if (!$incident) {
             return;
         }
-
-        $incidentStatus = match ($workOrder->status) {
+        $updates = [
+        'status' => match ($workOrder->status) {
             'assigned' => 'assigned',
             'in_progress' => 'in_progress',
             'done' => 'resolved',
             'cancelled' => 'cancelled',
             default => $incident->status,
-        };
-
-        if ($incident->status === $incidentStatus) {
+            },
+        ];
+        // Set closed_at when ticked is closed
+        if ($workOrder->status === 'done' && $incident->closed_at === null) {
+            $updates['closed_at'] = now();
+        }
+        // Dont update if nothing changed
+        if ($incident->status === $updates['status'] && !isset($updates['closed_at'])) {
             return;
         }
 
-        $incident->update([
-            'status' => $incidentStatus,
-        ]);
+        $incident->update($updates);
     }
 
     /**

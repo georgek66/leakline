@@ -62,7 +62,7 @@ return [
     'home_step_3' => 'Track progress anytime from the portal.',
 
     'install_info_title' => 'Install LeakLine on your device',
-    'install_info_subtitle' => 'You can install this app for faster access and offline support.',
+    'install_info_subtitle' => 'You can install this app for faster access.',
     'install_info_android' => 'Android: Open browser menu -> Install app / Add to Home screen.',
     'install_info_ios' => 'iPhone (Safari): Tap Share -> Add to Home Screen.',
     'install_info_desktop' => 'Desktop: Use your browser menu/address bar -> Install app.',
