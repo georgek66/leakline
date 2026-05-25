@@ -61,10 +61,6 @@ Route::prefix('citizen')
             ->name('privacy');
 
     });
-// Offline sync route without middlewares
-Route::post('citizen/report/sync',[IncidentReportController::class, 'storeSync'])
-    ->name('citizen.report.sync')
-    ->withoutMiddleware(App\Http\Middleware\SetLocale::class);
 
 // Admin routes
 Route::middleware(['auth', 'role:admin'])
