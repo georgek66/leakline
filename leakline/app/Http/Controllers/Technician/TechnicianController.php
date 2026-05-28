@@ -84,19 +84,7 @@ class TechnicianController extends Controller
             'created_at' => now(),
         ]);
 
-//        $coordinators = User::query()
-//            ->whereHas('role', fn ($q) => $q->whereIn('name', ['coordinator', 'admin']))
-//            ->get();
-//
-//        foreach ($coordinators as $coordinator) {
-//            Notification::create([
-//                'user_id' => $coordinator->id,
-//                'incident_id' => $workOrder->incident_id,
-//                'message' => "Incident #{$workOrder->incident_id} was rejected by technician {$technicianName}. Reason: {$reason}",
-//                'type' => 'email',
-//                'status' => 'queued',
-//            ]);
-//        }
+
 
         $workOrder->update([
             'assigned_to' => null,

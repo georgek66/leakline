@@ -36,7 +36,7 @@
             <p class="text-xs text-gray-500 mb-1">Response Due</p>
             <p class="font-semibold {{ $responseOverdue ? 'text-red-600' : 'text-amber-700' }}">
                 {{-- Show warning if overdue, otherwise show remaining time --}}
-                {{ $responseOverdue ? '⚠️ Overdue by ' . $responseLabel : '⏱ ' . $responseLabel . ' left' }}
+                {{ $responseOverdue ? ' Overdue by ' . $responseLabel : ' ' . $responseLabel . ' left' }}
             </p>
             <!-- Display the actual due date and time -->
             <p class="text-xs text-gray-400 mt-1">{{ $incident->responseDueAt()?->format('Y-m-d H:i') ?? '—' }}</p>
@@ -48,7 +48,7 @@
             <p class="text-xs text-gray-500 mb-1">Resolution Due</p>
             <p class="font-semibold {{ $resolutionOverdue ? 'text-red-600' : 'text-green-700' }}">
                 {{-- Show warning if overdue, otherwise show remaining time with checkmark --}}
-                {{ $resolutionOverdue ? '⚠️ Overdue by ' . $resolutionLabel : '✅ ' . $resolutionLabel . ' left' }}
+                {{ $resolutionOverdue ? ' Overdue by ' . $resolutionLabel : ' ' . $resolutionLabel . ' left' }}
             </p>
             <!-- Display the actual due date and time -->
             <p class="text-xs text-gray-400 mt-1">{{ $incident->resolutionDueAt()?->format('Y-m-d H:i') ?? '—' }}</p>

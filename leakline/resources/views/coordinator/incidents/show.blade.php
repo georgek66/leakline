@@ -68,7 +68,7 @@
                 <div class="p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Summary</h3>
 
-                    {{-- null-safe fallbacks avoid broken UI --}}
+                    {{-- null-safe fallbacks to avoid broken UI --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
                             <p class="text-gray-500">Ticket</p>

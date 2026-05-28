@@ -187,7 +187,7 @@ class IncidentReportController extends Controller
 
         return back()->with('status','Your contact info was deleted.');
     }
-
+//    Offline sync
 //    public function storeSync(Request $request)
 //    {
 //
