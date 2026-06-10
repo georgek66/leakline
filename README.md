@@ -97,7 +97,7 @@ Key components include:
 ![Track Incident](screenshots/citizen-track.png)
 
 ### Coordinator Dashboard
-![Coordinator Dashboard](screenshots/coordinator-20dashboard.png)
+![Coordinator Dashboard](screenshots/coordinator-dashboard.png)
 
 ### Technician Job Inbox
 ![Technician Inbox](screenshots/technician-job-inbox.png)
